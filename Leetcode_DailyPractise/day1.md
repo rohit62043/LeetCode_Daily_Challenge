@@ -86,3 +86,115 @@ public:
     }
 };
 ```
+
+# 🧠 Intuition
+
+The problem is to generate the first `numRows` of **Pascal's Triangle**.  
+The key observation is that:
+- The first and last elements of each row are always `1`.
+- The inner elements are the **sum of two elements directly above it** from the previous row.
+
+---
+
+# 🛠️ Approach
+
+1. Initialize an empty 2D vector `ans` to store all rows.
+2. For each row `i` (0-indexed):
+   - Create a vector `nums` of size `i + 1` initialized with `0`.
+   - Set the first element `nums[0] = 1`.
+   - For each inner index `j` (from 1 to `i-1`), compute:
+     ```
+     nums[j] = ans[i-1][j-1] + ans[i-1][j];
+     ```
+   - If `i != 0`, set `nums[i] = 1` (last element of the row).
+   - Push `nums` into `ans`.
+
+---
+
+# ⏱️ Complexity
+
+- **Time Complexity:**  
+  $$O(n^2)$$  
+  Because we compute every element in the triangle up to `numRows`.
+
+- **Space Complexity:**  
+  $$O(n^2)$$  
+  We store the entire triangle, which consists of about \( \frac{n(n+1)}{2} \) elements.
+
+---
+
+# 💻 Code
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> generate(int numRows) {
+        vector<vector<int>> ans;
+        for (int i = 0; i < numRows; i++) {
+            vector<int> nums(i + 1, 0);
+            nums[0] = 1;
+            for (int j = 1; j < i; j++) {
+                nums[j] = ans[i - 1][j - 1] + ans[i - 1][j];
+            }
+            if (i != 0) nums[i] = 1;
+            ans.push_back(nums);
+        }
+        return ans;
+    }
+};
+```
+
+# 898. Bitwise ORs of Subarrays
+
+## 🔍 Intuition
+To find the number of **distinct bitwise OR results** from all **non-empty subarrays**, we can take advantage of a key property of bitwise OR:
+- **Monotonic behavior**: Once a bit is set in an OR operation, it remains set for subsequent ORs.
+- So, we can build the OR values of subarrays incrementally using previously computed results, avoiding redundant computations.
+
+---
+
+## 🧠 Approach
+1. Use a set `res` to store all **unique OR results** across subarrays.
+2. Maintain a set `cur` that keeps track of **OR values of subarrays ending at the current index**.
+3. For each number `num` in the array:
+   - Create a new set `new_cur` initialized with `{num}`.
+   - For each value `val` in `cur`, compute `val | num` and insert into `new_cur`.
+   - Replace `cur` with `new_cur`.
+   - Insert all values from `cur` into `res`.
+
+This way, each new element extends the subarrays and updates the possible OR results efficiently.
+
+---
+
+## ⏱️ Complexity
+
+- **Time Complexity:**  
+  \( O(N \cdot \log M) \)  
+  Where:
+  - \( N \) is the length of the array.
+  - \( M \) is the max OR value possible (bounded by 32 bits since \( arr[i] \leq 10^9 \)).
+
+- **Space Complexity:**  
+  \( O(M) \)  
+  For the result and intermediate sets, limited by number of distinct OR results (at most 32 in practice for 32-bit integers).
+
+---
+
+## ✅ Code (C++)
+```cpp
+class Solution {
+public:
+    int subarrayBitwiseORs(vector<int>& arr) {
+        unordered_set<int> res, cur;
+        for (int num : arr) {
+            unordered_set<int> new_cur = {num};
+            for (int val : cur) {
+                new_cur.insert(val | num);
+            }
+            cur = move(new_cur);
+            res.insert(cur.begin(), cur.end());
+        }
+        return res.size();
+    }
+};
+```
